@@ -1,8 +1,29 @@
 IMAGE_NAME=edoburu/pgbouncer
 IMAGE_VERSION=1.19.1
+PATCH_NUMBER=p1
 
-docker:
-	docker build --pull -t $(IMAGE_NAME):$(IMAGE_VERSION) .
+docker-x86:
+	docker buildx build \
+		--platform linux/amd64 \
+		-t $(IMAGE_NAME):$(IMAGE_VERSION)-$(PATCH_NUMBER) \
+		-f ./Dockerfile \
+		--load \
+		.
+
+# to build arm64 on amd64
+# sudo apt install -y qemu-user-static binfmt-support && docker buildx create --use
+docker-arm:
+	docker buildx build \
+		--platform linux/arm64 \
+		-t $(IMAGE_NAME):$(IMAGE_VERSION)-$(PATCH_NUMBER) \
+		-f ./Dockerfile \
+		--load \
+		.
 
 push:
-	docker push $(IMAGE_NAME):$(IMAGE_VERSION)-p0
+	docker buildx build \
+		--platform linux/arm64,linux/amd64 \
+		-t $(IMAGE_NAME):$(IMAGE_VERSION)-$(PATCH_NUMBER) \
+		-f ./Dockerfile \
+		--push \
+		.
